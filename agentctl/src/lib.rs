@@ -14,6 +14,7 @@ mod environment;
 pub mod exposed;
 pub mod github;
 pub mod harness;
+pub mod labels;
 pub mod local;
 pub mod manifest;
 pub mod names;

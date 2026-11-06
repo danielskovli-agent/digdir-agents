@@ -8,10 +8,10 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 
 use super::protocol::{
     AccountLoginParams, AccountLogoutResult, AccountParams, AgentListParams, CODE_EXPOSED_FILES, DaemonInfo,
-    DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, LogoutParams, LogoutResult,
+    DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LabelParams, LoginParams, LogoutParams, LogoutResult,
     MAX_RESPONSE_BYTES, METHOD_ACCOUNT_LIST, METHOD_ACCOUNT_LOGIN, METHOD_ACCOUNT_LOGOUT, METHOD_APPLY,
     METHOD_AUTH_LOGIN, METHOD_AUTH_LOGINS, METHOD_AUTH_LOGOUT, METHOD_AUTH_SIGN_IN_AGENT, METHOD_CONVERGE,
-    METHOD_DEFINITIONS, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    METHOD_DEFINITIONS, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LABEL, METHOD_LIST,
     METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_RESTART, METHOD_RUN, METHOD_SECRET_LIST,
     METHOD_SECRET_REMOVE, METHOD_SECRET_SET, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE,
     METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE,
@@ -387,6 +387,28 @@ impl Client {
     pub async fn restart(&self, name: &str, now: bool) -> Result<Agent, Error> {
         self.call(METHOD_RESTART, RestartParams { name: name.into(), now })
             .await
+    }
+
+    /// Sets labels on an agent from the host and removes the `remove` keys. Returns the agent as stored.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn label(
+        &self,
+        name: &str,
+        set: crate::labels::Labels,
+        remove: std::collections::BTreeSet<String>,
+    ) -> Result<Agent, Error> {
+        self.call(
+            METHOD_LABEL,
+            LabelParams {
+                name: name.into(),
+                set,
+                remove,
+            },
+        )
+        .await
     }
 
     /// Stores a host-acquired harness credential in the daemon as the login `login`.
